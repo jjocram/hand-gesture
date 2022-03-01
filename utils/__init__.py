@@ -139,19 +139,19 @@ def pre_process_point_history(image, point_history):
 def logging_csv(number, mode, landmark_list, point_history_list):
     """
     Save data on csv
-    :param number:
+    :param number: the identification number of the gesture (referees to label file)
     :param mode: the current application mode: 0=recognition; 1=create new static gesture; 2=create new moving gesture
     :param landmark_list: used with mode 1, the landmarks to add to the csv
     :param point_history_list: used with mode 2, the point history to add to the csv
     """
     if mode == 0:
         return
-    if mode == 1 and (0 <= number <= 9):
+    if mode == 1 and (number >= 0):
         csv_path = 'model/keypoint_classifier/keypoint.csv'
         with open(csv_path, 'a', newline="") as f:
             writer = csv.writer(f)
             writer.writerow([number, *landmark_list])
-    if mode == 2 and (0 <= number <= 9):
+    if mode == 2 and (number >= 0):
         csv_path = 'model/point_history_classifier/point_history.csv'
         with open(csv_path, 'a', newline="") as f:
             writer = csv.writer(f)

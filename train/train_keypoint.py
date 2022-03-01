@@ -19,8 +19,6 @@ def get_model(num_classes: int):
 
     return model
 
-def get_callbacks():
-    return []
 
 @take_time("Keypoint fit")
 def train_model_with_time(model, x_train, y_train, x_test, y_test, callbacks, batch_size, epochs):
@@ -53,12 +51,12 @@ def train(train_name: str):
     num_classes = get_num_classes_from_labels_file(labels_path)
 
     # Read the dataset
-    X_dataset = loadtxt(dataset_path, delimiter=',', dtype='float32', usecols=list(range(1, (21 * 2) + 1)))
-    Y_dataset = loadtxt(dataset_path, delimiter=',', dtype='int32', usecols=(0,))
+    x_dataset = loadtxt(dataset_path, delimiter=',', dtype='float32', usecols=list(range(1, (21 * 2) + 1)))
+    y_dataset = loadtxt(dataset_path, delimiter=',', dtype='int32', usecols=(0,))
 
     # Train-test split
-    X_train, X_test, Y_train, Y_test = train_test_split(X_dataset, Y_dataset, train_size=0.75)
-    X_train, X_evaluate, Y_train, Y_evaluate = train_test_split(X_train, Y_train, train_size=0.8)
+    x_train, x_test, y_train, y_test = train_test_split(x_dataset, y_dataset, train_size=0.75)
+    x_train, x_evaluate, y_train, y_evaluate = train_test_split(x_train, y_train, train_size=0.8)
 
     model = get_model(num_classes)
 
@@ -80,14 +78,13 @@ def train(train_name: str):
     tb_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
     train_model_with_time(model,
-                          X_train, Y_train, X_test, Y_test,
+                          x_train, y_train, x_test, y_test,
                           callbacks=[cp_callback, es_callback, tb_callback],
                           batch_size=64,
                           epochs=10000)
 
     evaluate_model_with_time(model,
-                             X_evaluate, Y_evaluate,
+                             x_evaluate, y_evaluate,
                              batch_size=64)
 
     convert_to_tflite(model, tflite_save_path)
-

@@ -8,14 +8,28 @@ from cvfpscalc import CvFpsCalc
 
 
 def select_mode(key, mode):
+    """
+
+    :param key: the key pressed by the user, -1 if none
+    :param mode: the current mode, to update or leave not changed
+    :return: return the pair number  and mode
+    """
+
+    starting_letter = ord("a")
+    ending_letter = ord("z")
+
+    key_mode_recognition = ord("0")
+    key_mode_new_static_gesture = ord("1")
+    key_mode_new_dynamic_gesture = ord("2")
+
     number = -1
-    if 48 <= key <= 57:  # 0 ~ 9
-        number = key - 48
-    if key == 110:  # n -> recognition
+    if starting_letter <= key <= ending_letter:  # a ~ z
+        number = key - starting_letter  # convert from 0 to 25
+    if key == key_mode_recognition:  # 0 -> recognition
         mode = 0
-    if key == 107:  # k -> New static gesture -> select a number after that
+    if key == key_mode_new_static_gesture:  # 1 -> New static gesture -> select a number after that
         mode = 1
-    if key == 104:  # h -> New moving gesture -> select a number after thats
+    if key == key_mode_new_dynamic_gesture:  # 2 -> New moving gesture -> select a number after that
         mode = 2
     return number, mode
 
@@ -74,7 +88,7 @@ def main():
         debug_image, gesture_id = gesture_detector.recognize(image, number, mode, fps)
         gesture_buffer.add_gesture(gesture_id)
 
-        threading.Thread(target=control, args=(gesture_controller,)).start()
+        # threading.Thread(target=control, args=(gesture_controller,)).start()
 
         # Show image on the screen
         cv2.imshow('Hand Gesture Recognition', debug_image)

@@ -1,5 +1,6 @@
 # Tensorboard logs
 keypoint_tensorboard_logs/
+point_history_tensorboard_logs/
 
 
 ### Python

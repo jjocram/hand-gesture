@@ -2,7 +2,8 @@ import tensorflow as tf
 from numpy import loadtxt
 from sklearn.model_selection import train_test_split
 
-from train.utils import get_num_classes_from_labels_file, take_time, convert_to_tflite
+from train.utils import get_num_classes_from_labels_file, convert_to_tflite, train_model_with_time, \
+    evaluate_model_with_time, get_callbacks
 
 
 def get_model(num_classes: int):
@@ -18,27 +19,6 @@ def get_model(num_classes: int):
     ])
 
     return model
-
-
-@take_time("Keypoint fit")
-def train_model_with_time(model, x_train, y_train, x_test, y_test, callbacks, batch_size, epochs):
-    # Model train
-    model.fit(
-        x_train,
-        y_train,
-        epochs=epochs,
-        batch_size=batch_size,
-        validation_data=(x_test, y_test),
-        callbacks=callbacks
-    )
-
-
-@take_time("Keypoint evaluate")
-def evaluate_model_with_time(model, x_evaluate, y_evaluate, batch_size):
-    # Model evaluation
-    val_loss, val_acc = model.evaluate(x_evaluate, y_evaluate, batch_size=batch_size)
-
-    print("Validation loss:", val_loss, "\nValidation accuracy:", val_acc)
 
 
 def train(train_name: str):
@@ -67,19 +47,9 @@ def train(train_name: str):
         metrics=['accuracy']
     )
 
-    # Model checkpoint callback
-    cp_callback = tf.keras.callbacks.ModelCheckpoint(model_save_path, verbose=1, save_weights_only=False,
-                                                     save_best_only=True)
-
-    # Callback for early stopping
-    es_callback = tf.keras.callbacks.EarlyStopping(patience=50, verbose=1)
-
-    # Callback for save tensorboard data
-    tb_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-
     train_model_with_time(model,
                           x_train, y_train, x_test, y_test,
-                          callbacks=[cp_callback, es_callback, tb_callback],
+                          callbacks=get_callbacks(model_save_path, log_dir),
                           batch_size=64,
                           epochs=10000)
 

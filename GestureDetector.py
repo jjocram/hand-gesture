@@ -57,6 +57,8 @@ class GestureDetector:
         self.point_history = deque(maxlen=history_length)
         self.finger_gesture_history = deque(maxlen=history_length)
 
+        self.id_sing_for_history = [ord(c) - ord("a") for c in ("i", "z")]
+
     def recognize(self, image, number, mode, fps):
         # Variable for holding the gesture id
         gesture_id = -1
@@ -91,10 +93,10 @@ class GestureDetector:
 
                 # Hand sign classification
                 hand_sign_id = self.keypoint_classifier(pre_processed_landmark_list)
-                if hand_sign_id == 2:  # Point gesture
-                    self.point_history.append(landmark_list[8])  # 人差指座標
-                else:
-                    self.point_history.append([0, 0])
+                #if hand_sign_id in self.id_sing_for_history:  # Point gesture
+                self.point_history.append(landmark_list[8])  # 人差指座標
+                #else:
+                #    self.point_history.append([0, 0])
 
                 # Finger gesture classification
                 finger_gesture_id = 0

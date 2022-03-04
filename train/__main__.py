@@ -1,5 +1,6 @@
 import argparse
-from .train_keypoint import train
+from .train_keypoint import train as train_static_gestures
+from .train_history import train as train_dynamic_gestures
 
 
 def cli_argument_parser() -> dict:
@@ -20,6 +21,7 @@ if __name__ == "__main__":
     print(args)
     if args["train_model"] == "static_gesture":
         print("Training on static hand gestures")
-        train(train_name=args["train_name"])
+        train_static_gestures(train_name=args["train_name"])
     else:  # args["train_model"] == "moving_gesture"
+        train_dynamic_gestures(train_name=args["train_name"])
         print("Training on moving hand gestures")

@@ -61,7 +61,8 @@ class GestureDetector:
 
     def recognize(self, image, number, mode, fps):
         # Variable for holding the gesture id
-        gesture_id = -1
+        static_hand_gesture_id = -1
+        dynamic_hand_gesture_id = -1
 
         # Mirror display
         image = cv2.flip(image, 1)
@@ -92,21 +93,20 @@ class GestureDetector:
                 logging_csv(number, mode, pre_processed_landmark_list, pre_processed_point_history_list)
 
                 # Hand sign classification
-                hand_sign_id = self.keypoint_classifier(pre_processed_landmark_list)
+                static_hand_gesture_id = self.keypoint_classifier(pre_processed_landmark_list)
                 #if hand_sign_id in self.id_sing_for_history:  # Point gesture
                 self.point_history.append(landmark_list[8])  # 人差指座標
                 #else:
                 #    self.point_history.append([0, 0])
 
                 # Finger gesture classification
-                finger_gesture_id = 0
                 point_history_len = len(pre_processed_point_history_list)
                 if point_history_len == (self.history_length * 2):
-                    finger_gesture_id = self.point_history_classifier(pre_processed_point_history_list)
+                    dynamic_hand_gesture_id = self.point_history_classifier(pre_processed_point_history_list)
 
                 # Calculate the gesture IDs in the latest calculation
-                self.finger_gesture_history.append(finger_gesture_id)
-                most_common_fg_id = Counter(self.finger_gesture_history).most_common()
+                self.finger_gesture_history.append(dynamic_hand_gesture_id)
+                most_common_dynamic_gesture = Counter(self.finger_gesture_history).most_common()
 
                 # Drawing information on the image
                 debug_image = draw_bounding_rect(debug_image, bounding_box_rect)
@@ -115,18 +115,16 @@ class GestureDetector:
                     debug_image,
                     bounding_box_rect,
                     handedness,
-                    self.keypoint_classifier_labels[hand_sign_id],
-                    self.point_history_classifier_labels[most_common_fg_id[0][0]],
+                    self.keypoint_classifier_labels[static_hand_gesture_id],
+                    self.point_history_classifier_labels[most_common_dynamic_gesture[0][0]],
                 )
-
-                gesture_id = hand_sign_id
         else:
             self.point_history.append([0, 0])
 
         debug_image = draw_point_history(debug_image, self.point_history)
         debug_image = draw_info(debug_image, fps, mode, number)
 
-        return debug_image, gesture_id
+        return debug_image, static_hand_gesture_id, dynamic_hand_gesture_id
 
 
 class GestureBuffer:
@@ -139,8 +137,11 @@ class GestureBuffer:
 
     def get_gesture(self):
         counter = Counter(self._buffer).most_common()
-        if counter[0][1] >= (self.buffer_len - 1):
-            self._buffer.clear()
-            return counter[0][0]
-        else:
+        if len(counter) <= 0:
             return
+
+        if counter[0][1] < (self.buffer_len - 1):
+            return
+
+        self._buffer.clear()
+        return counter[0][0]

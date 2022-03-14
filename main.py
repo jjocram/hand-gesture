@@ -34,12 +34,14 @@ def select_mode(key, mode):
     return number, mode
 
 
-gesture_buffer = GestureBuffer(buffer_len=5)
+static_gesture_buffer = GestureBuffer(buffer_len=5)
+dynamic_gesture_buffer = GestureBuffer(buffer_len=5)
 
 
 def control(controller: GestureController):
-    global gesture_buffer
-    controller.gesture_control(gesture_buffer)
+    global static_gesture_buffer
+    global dynamic_gesture_buffer
+    controller.gesture_control(static_gesture_buffer, dynamic_gesture_buffer)
 
 
 def main():
@@ -85,10 +87,11 @@ def main():
             break
 
         # Recognize the gesture
-        debug_image, gesture_id = gesture_detector.recognize(image, number, mode, fps)
-        gesture_buffer.add_gesture(gesture_id)
+        debug_image, static_hand_gesture_id, dynamic_hand_gesture_id = gesture_detector.recognize(image, number, mode, fps)
+        static_gesture_buffer.add_gesture(static_hand_gesture_id)
+        dynamic_gesture_buffer.add_gesture(dynamic_hand_gesture_id)
 
-        # threading.Thread(target=control, args=(gesture_controller,)).start()
+        threading.Thread(target=control, args=(gesture_controller,)).start()
 
         # Show image on the screen
         cv2.imshow('Hand Gesture Recognition', debug_image)

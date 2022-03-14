@@ -1,31 +1,43 @@
+import threading
+from time import sleep
+
 from GestureDetector import GestureBuffer
 
 
 class GestureController:
-    def gesture_control(self, gesture_buffer: GestureBuffer):
-        gesture_id = gesture_buffer.get_gesture()
-        if gesture_id is not None:
-            print("GESTURE: id:", gesture_id, end=" ")
 
-            if gesture_id == 0:  # Forward
-                print("--> Forward")
-            elif gesture_id == 1:  # STOP
-                print("--> Stop")
-            if gesture_id == 5:  # Back
-                print("--> Back")
+    def __init__(self):
+        self.last_static = -1
+        self.last_dynamic = -1
+        self.sending_message = threading.Lock()
 
-            elif gesture_id == 2:  # UP
-                print("--> Up")
-            elif gesture_id == 4:  # DOWN
-                print("--> Down")
+        self.state = 'q0'
 
-            elif gesture_id == 3:  # LAND
-                print("--> Land")
+    def gesture_control(self, static_gesture_buffer: GestureBuffer, dynamic_gesture_buffer: GestureBuffer):
+        with self.sending_message:
+            static_gesture_id = static_gesture_buffer.get_gesture()
+            dynamic_gesture_id = dynamic_gesture_buffer.get_gesture()
 
-            elif gesture_id == 6:  # LEFT
-                print("--> Left")
-            elif gesture_id == 7:  # RIGHT
-                print("--> Right")
+            if static_gesture_id is not None and static_gesture_id != -1:
+                if self.last_static != static_gesture_id:
+                    print("Static gesture id:", static_gesture_id)
+                    self.last_static = static_gesture_id
 
-            elif gesture_id == -1:
-                print("--> Not recognized")
+            if dynamic_gesture_id is not None and dynamic_gesture_buffer != -1:
+                if self.last_dynamic != dynamic_gesture_id:
+                    print("Dynamic gesture id:", dynamic_gesture_id)
+                    self.last_static = dynamic_gesture_id
+
+            # Automata management
+            if self.state == 'q0':
+                pass
+            elif self.state == 'q1':
+                pass
+            elif self.state == 'q2':
+                pass
+            elif self.state == 'q3':
+                pass
+            elif self.state == 'q4':
+                pass
+
+            sleep(2)

@@ -54,8 +54,8 @@ class GestureDetector:
 
         # Finger gesture history
         self.history_length = history_length
-        self.point_history = deque(maxlen=history_length)
-        self.finger_gesture_history = deque(maxlen=history_length)
+        self.point_history = deque(maxlen=self.history_length*5)
+        self.finger_gesture_history = deque(maxlen=self.history_length)
 
         self.id_sing_for_history = [ord(c) - ord("a") for c in ("i", "z")]
 
@@ -94,14 +94,14 @@ class GestureDetector:
 
                 # Hand sign classification
                 static_hand_gesture_id = self.keypoint_classifier(pre_processed_landmark_list)
-                #if hand_sign_id in self.id_sing_for_history:  # Point gesture
-                self.point_history.append(landmark_list[8])  # 人差指座標
-                #else:
-                #    self.point_history.append([0, 0])
+
+                for i in [4, 8, 12, 16, 20]:
+                    self.point_history.append(landmark_list[i])
+
 
                 # Finger gesture classification
                 point_history_len = len(pre_processed_point_history_list)
-                if point_history_len == (self.history_length * 2):
+                if point_history_len == (self.history_length * 2 * 5):
                     dynamic_hand_gesture_id = self.point_history_classifier(pre_processed_point_history_list)
 
                 # Calculate the gesture IDs in the latest calculation

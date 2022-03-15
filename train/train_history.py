@@ -6,24 +6,24 @@ from train.utils import get_num_classes_from_labels_file, convert_to_tflite, tra
     evaluate_model_with_time, get_callbacks
 
 
-def get_model(num_classes: int, time_steps: int, dimension: int):
-    # model = tf.keras.models.Sequential([
-    #     tf.keras.layers.InputLayer(input_shape=(time_steps * dimension,)),
-    #     tf.keras.layers.Dropout(0.2),
-    #     tf.keras.layers.Dense(24, activation='relu'),
-    #     tf.keras.layers.Dropout(0.5),
-    #     tf.keras.layers.Dense(10, activation='relu'),
-    #     tf.keras.layers.Dense(num_classes, activation='softmax')
-    # ])
+def get_model(num_classes: int, time_steps: int, dimension: int, number_of_fingers: int):
     model = tf.keras.models.Sequential([
-        tf.keras.layers.InputLayer(input_shape=(time_steps * dimension,)),
-        tf.keras.layers.Reshape((time_steps, dimension), input_shape=(time_steps * dimension,)),
+        tf.keras.layers.InputLayer(input_shape=(time_steps * dimension * number_of_fingers,)),
         tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.LSTM(16, input_shape=[time_steps, dimension]),
+        tf.keras.layers.Dense(24, activation='relu'),
         tf.keras.layers.Dropout(0.5),
         tf.keras.layers.Dense(10, activation='relu'),
         tf.keras.layers.Dense(num_classes, activation='softmax')
     ])
+    # model = tf.keras.models.Sequential([
+    #     tf.keras.layers.InputLayer(input_shape=(time_steps * dimension,)),
+    #     tf.keras.layers.Reshape((time_steps, dimension), input_shape=(time_steps * dimension,)),
+    #     tf.keras.layers.Dropout(0.2),
+    #     tf.keras.layers.LSTM(16, input_shape=[time_steps, dimension]),
+    #     tf.keras.layers.Dropout(0.5),
+    #     tf.keras.layers.Dense(10, activation='relu'),
+    #     tf.keras.layers.Dense(num_classes, activation='softmax')
+    # ])
 
     return model
 
@@ -38,16 +38,17 @@ def train(train_name: str):
     num_classes = get_num_classes_from_labels_file(labels_path)
     time_steps = 16
     dimension = 2
+    number_of_fingers = 5
 
     # Read the dataset
-    x_dataset = loadtxt(dataset_path, delimiter=',', dtype='float32', usecols=list(range(1, (time_steps * dimension) + 1)))
+    x_dataset = loadtxt(dataset_path, delimiter=',', dtype='float32', usecols=list(range(1, (time_steps * dimension * number_of_fingers) + 1)))
     y_dataset = loadtxt(dataset_path, delimiter=',', dtype='int32', usecols=(0,))
 
     # Train-test split
     x_train, x_test, y_train, y_test = train_test_split(x_dataset, y_dataset, train_size=0.75)
     x_train, x_evaluate, y_train, y_evaluate = train_test_split(x_train, y_train, train_size=0.8)
 
-    model = get_model(num_classes, time_steps, dimension)
+    model = get_model(num_classes, time_steps, dimension, number_of_fingers)
 
     # Model compilation
     model.compile(

@@ -256,7 +256,7 @@ def draw_point_history(image, point_history):
         if point[0] != 0 and point[1] != 0:  # If X and Y are not zeros
             cv.circle(img=image,
                       center=(point[0], point[1]),
-                      radius=1 + int(index / 2),
+                      radius=1 + (int(index / 2) % 5),
                       color=color_rgb,
                       thickness=2)
 

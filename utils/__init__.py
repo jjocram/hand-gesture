@@ -253,6 +253,9 @@ def draw_point_history(image, point_history):
     """
     color_rgb = (152, 251, 152)
     for index, point in enumerate(point_history):
+        if index % 3 != 0:
+            # Reduce the number of points on the screen
+            continue
         if point[0] != 0 and point[1] != 0:  # If X and Y are not zeros
             cv.circle(img=image,
                       center=(point[0], point[1]),

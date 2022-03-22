@@ -91,7 +91,7 @@ def main():
         static_gesture_buffer.add_gesture(static_hand_gesture_id)
         dynamic_gesture_buffer.add_gesture(dynamic_hand_gesture_id)
 
-        threading.Thread(target=control, args=(gesture_controller,)).start()
+        #threading.Thread(target=control, args=(gesture_controller,)).start()
 
         # Show image on the screen
         cv2.imshow('Hand Gesture Recognition', debug_image)

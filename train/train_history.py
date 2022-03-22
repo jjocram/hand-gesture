@@ -1,9 +1,7 @@
 import tensorflow as tf
-from numpy import loadtxt
-from sklearn.model_selection import train_test_split
 
 from train.utils import get_num_classes_from_labels_file, convert_to_tflite, train_model_with_time, \
-    evaluate_model_with_time, get_callbacks
+    evaluate_model_with_time, get_callbacks, get_dataset, get_train_test_evaluate_datasets
 
 
 def get_model(num_classes: int, time_steps: int, dimension: int, number_of_fingers: int):
@@ -28,7 +26,7 @@ def get_model(num_classes: int, time_steps: int, dimension: int, number_of_finge
     return model
 
 
-def train(train_name: str):
+def train(train_name: str, sample_number: int, **kwargs):
     dataset_path = "model/point_history_classifier/point_history.csv"
     labels_path = "model/point_history_classifier/point_history_classifier_label.csv"
     model_save_path = "model/point_history_classifier/point_history_classifier.hdf5"
@@ -41,12 +39,13 @@ def train(train_name: str):
     number_of_fingers = 5
 
     # Read the dataset
-    x_dataset = loadtxt(dataset_path, delimiter=',', dtype='float32', usecols=list(range(1, (time_steps * dimension * number_of_fingers) + 1)))
-    y_dataset = loadtxt(dataset_path, delimiter=',', dtype='int32', usecols=(0,))
+    x_dataset, y_dataset = get_dataset(dataset_path, sample_number)
 
-    # Train-test split
-    x_train, x_test, y_train, y_test = train_test_split(x_dataset, y_dataset, train_size=0.75)
-    x_train, x_evaluate, y_train, y_evaluate = train_test_split(x_train, y_train, train_size=0.8)
+    # Train test split
+    x_train, y_train, x_test, y_test, x_evaluate, y_evaluate = get_train_test_evaluate_datasets(x_dataset,
+                                                                                                y_dataset,
+                                                                                                train_size=0.75,
+                                                                                                evaluation_size=0.2)
 
     model = get_model(num_classes, time_steps, dimension, number_of_fingers)
 

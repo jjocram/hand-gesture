@@ -1,0 +1,41 @@
+{
+  "states": ["q0", "q1", "q2", "q3", "q4"],
+  "initial_state": "q0",
+  "transitions": [
+    {
+      "from": "q0",
+      "to": "q1",
+      "with": "pick_up"
+    },
+    {
+      "from": "q0",
+      "to": "q2",
+      "with": "go_to"
+    },
+    {
+      "from": "q2",
+      "to": "q0",
+      "with": "A-Z"
+    },
+    {
+      "from": "q1",
+      "to": "q3",
+      "with": "A-Z"
+    },
+    {
+      "from": "q3",
+      "to": "q0",
+      "with": "drop_down"
+    },
+    {
+      "from": "q3",
+      "to": "q4",
+      "with": "go_to"
+    },
+    {
+      "from": "q4",
+      "to": "q3",
+      "with": "A-Z"
+    }
+  ]
+}

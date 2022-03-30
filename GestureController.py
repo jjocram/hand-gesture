@@ -2,13 +2,7 @@ import threading
 from time import sleep
 
 from GestureDetector import GestureBuffer
-
-
-def get_char(static_gesture_id, dynamic_gesture_id):
-    if dynamic_gesture_id == 0 or dynamic_gesture_id == 1:
-        return chr(dynamic_gesture_id + ord('a'))
-    else:
-        return chr(static_gesture_id + ord('a'))
+from utils import get_char
 
 
 class GestureController:

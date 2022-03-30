@@ -6,6 +6,12 @@ import cv2 as cv
 import numpy as np
 
 
+def get_char(static_gesture_id, dynamic_gesture_id):
+    if dynamic_gesture_id == 0 or dynamic_gesture_id == 1:
+        return chr(dynamic_gesture_id + ord('a'))
+    else:
+        return chr(static_gesture_id + ord('a'))
+
 def _draw_text_white_on_black(img, text, position):
     cv.putText(img=img,
                text=text,

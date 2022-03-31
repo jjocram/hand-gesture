@@ -4,9 +4,10 @@ from enum import Enum, auto
 
 import cv2
 
-from GestureController import GestureController
+from controller.GestureController import GestureController
 from GestureDetector import GestureDetector, GestureBuffer
-from MacroController import MacroController
+from controller.MacroController import MacroController
+from controller.MacroRunner import MacroRunner
 from cvfpscalc import CvFpsCalc
 
 
@@ -147,39 +148,43 @@ def main():
 
     print("Running the Hand Gesture Recognizer with this options:")
     print(f"mode: {mode.name}\noptions: {options}")
-    while True:
-        # Get fps
-        fps = cv_fps_calc.get()
 
-        # If ESC is pressed quit
-        key = cv2.waitKey(10)
-        if key == 27:  # ESC
-            break
+    if mode is Mode.RUN_MACRO:
+        MacroRunner(options).run()
+    else:
+        while True:
+            # Get fps
+            fps = cv_fps_calc.get()
 
-        number = save_number(key, saving_number)
+            # If ESC is pressed quit
+            key = cv2.waitKey(10)
+            if key == 27:  # ESC
+                break
 
-        # Get image from the webcam
-        ret, image = cap.read()
-        if not ret:
-            break
+            number = save_number(key, saving_number)
 
-        # Recognize the gesture
-        debug_image, static_hand_gesture_id, dynamic_hand_gesture_id = gesture_detector.recognize(image, number, mode.value,
-                                                                                                  fps)
-        static_gesture_buffer.add_gesture(static_hand_gesture_id)
-        dynamic_gesture_buffer.add_gesture(dynamic_hand_gesture_id)
+            # Get image from the webcam
+            ret, image = cap.read()
+            if not ret:
+                break
 
-        match mode:
-            case Mode.OPERATIONAL:
-                threading.Thread(target=control, args=(gesture_controller,)).start()
-            case Mode.CREATE_NEW_MACRO:
-                threading.Thread(target=control, args=(macro_controller,)).start()
+            # Recognize the gesture
+            debug_image, static_hand_gesture_id, dynamic_hand_gesture_id = gesture_detector.recognize(image, number, mode.value,
+                                                                                                      fps)
+            static_gesture_buffer.add_gesture(static_hand_gesture_id)
+            dynamic_gesture_buffer.add_gesture(dynamic_hand_gesture_id)
 
-        # Show image on the screen
-        cv2.imshow('Hand Gesture Recognition', debug_image)
+            match mode:
+                case Mode.OPERATIONAL:
+                    threading.Thread(target=control, args=(gesture_controller,)).start()
+                case Mode.CREATE_NEW_MACRO:
+                    threading.Thread(target=control, args=(macro_controller,)).start()
 
-    cap.release()
-    cv2.destroyAllWindows()
+            # Show image on the screen
+            cv2.imshow('Hand Gesture Recognition', debug_image)
+
+        cap.release()
+        cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':

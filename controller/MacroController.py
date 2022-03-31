@@ -58,7 +58,7 @@ class MacroController:
                     print(letter)
                     print(f"Saving command: going to {letter}")
                     print("---------------------------")
-                    macro_file.write(f"going_to {letter}\n")
+                    macro_file.write(f"go_to {letter}\n")
 
                     self.state = 'q0'
                     to_sleep = True
@@ -80,7 +80,7 @@ class MacroController:
                     print(letter)
                     print(f"Saving command: going to {letter}")
                     print("---------------------------")
-                    macro_file.write(f"going_to {letter}\n")
+                    macro_file.write(f"go_to {letter}\n")
 
                     self.state = 'q3'
                     to_sleep = True

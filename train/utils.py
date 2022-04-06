@@ -77,7 +77,8 @@ def get_callbacks(model_save_path: str, log_dir: str) -> list:
     # Callback for save tensorboard data
     tb_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
-    return [cp_callback, es_callback, tb_callback]
+    return [es_callback, tb_callback]
+    # return [cp_callback, es_callback, tb_callback]
 
 
 def get_dataset(dataset_path: str, sample_number: [int | None]) -> tuple[ndarray, ndarray]:
@@ -86,7 +87,7 @@ def get_dataset(dataset_path: str, sample_number: [int | None]) -> tuple[ndarray
     :param dataset_path: path of the dataset built with this tool
     :param labels_path: path of the labels to use
     :param sample_number: number of samples per class. None if you want to use the whole dataset
-    :return: the x_dataset and the y_dataset to use to train the network
+    :return: the y_dataset and the x_dataset to use to train the network
     """
     df = read_csv(dataset_path, header=None)
     classes = df[0].unique()
@@ -94,7 +95,7 @@ def get_dataset(dataset_path: str, sample_number: [int | None]) -> tuple[ndarray
     # Downsampling
     if sample_number:
         print("Undersampling...")
-        reduced_dfs = [df[df[0] == i].sample(sample_number) for i in classes]
+        reduced_dfs = [df[df[0] == i].sample(sample_number, random_state=42) for i in classes]
         df = concat(reduced_dfs).sample(frac=1).reset_index(drop=True)
 
     return df[0].to_numpy(dtype='int32'), df.drop(df.columns[[0]], axis=1).to_numpy(dtype='float32')

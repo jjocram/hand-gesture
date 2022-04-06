@@ -1,4 +1,9 @@
 import argparse
+
+from tensorflow.python.framework.random_seed import set_seed
+
+from numpy.random import seed
+
 from .train_keypoint import train as train_static_gestures
 from .train_history import train as train_dynamic_gestures
 
@@ -26,6 +31,10 @@ def cli_argument_parser() -> dict:
 
 
 if __name__ == "__main__":
+
+    set_seed(42)  # Tensorflow
+    seed(42)  # NumPy
+
     args = cli_argument_parser()
     print(args)
     if args["train_model"] == "static_gesture":

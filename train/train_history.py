@@ -5,23 +5,23 @@ from train.utils import get_num_classes_from_labels_file, convert_to_tflite, tra
 
 
 def get_model(num_classes: int, time_steps: int, dimension: int, number_of_fingers: int):
-    model = tf.keras.models.Sequential([
-        tf.keras.layers.InputLayer(input_shape=(time_steps * dimension * number_of_fingers,)),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(24, activation='relu'),
-        tf.keras.layers.Dropout(0.5),
-        tf.keras.layers.Dense(10, activation='relu'),
-        tf.keras.layers.Dense(num_classes, activation='softmax')
-    ])
     # model = tf.keras.models.Sequential([
-    #     tf.keras.layers.InputLayer(input_shape=(time_steps * dimension,)),
-    #     tf.keras.layers.Reshape((time_steps, dimension), input_shape=(time_steps * dimension,)),
+    #     tf.keras.layers.InputLayer(input_shape=(time_steps * dimension * number_of_fingers,)),
     #     tf.keras.layers.Dropout(0.2),
-    #     tf.keras.layers.LSTM(16, input_shape=[time_steps, dimension]),
+    #     tf.keras.layers.Dense(24, activation='relu'),
     #     tf.keras.layers.Dropout(0.5),
     #     tf.keras.layers.Dense(10, activation='relu'),
     #     tf.keras.layers.Dense(num_classes, activation='softmax')
     # ])
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.InputLayer(input_shape=(time_steps * dimension * number_of_fingers,)),
+        tf.keras.layers.Reshape((time_steps, dimension*number_of_fingers), input_shape=(time_steps * dimension * number_of_fingers,)),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.LSTM(16, input_shape=[time_steps, dimension*number_of_fingers]),
+        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(10, activation='relu'),
+        tf.keras.layers.Dense(num_classes, activation='softmax')
+    ])
 
     return model
 
@@ -39,7 +39,7 @@ def train(train_name: str, sample_number: int, **kwargs):
     number_of_fingers = 5
 
     # Read the dataset
-    x_dataset, y_dataset = get_dataset(dataset_path, sample_number)
+    y_dataset, x_dataset = get_dataset(dataset_path, sample_number)
 
     # Train test split
     x_train, y_train, x_test, y_test, x_evaluate, y_evaluate = get_train_test_evaluate_datasets(x_dataset,
@@ -69,4 +69,4 @@ def train(train_name: str, sample_number: int, **kwargs):
     model.save(model_save_path, include_optimizer=False)
     model = tf.keras.models.load_model(model_save_path)
 
-    convert_to_tflite(model, tflite_save_path)
+    #convert_to_tflite(model, tflite_save_path)

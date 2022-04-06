@@ -116,6 +116,7 @@ def main():
 
     saving_number = -1
     macro_file_path = ""
+    options = None
 
     if args["interactive"]:
         mode, options = get_mode_and_number_with_interaction()
@@ -127,7 +128,7 @@ def main():
             case Mode.RUN_MACRO:
                 macro_file_path = options
     else:
-        mode, saving_number = 0, -1
+        mode, saving_number = Mode.OPERATIONAL, -1
 
     cap = cv2.VideoCapture(cap_device)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, cap_width)

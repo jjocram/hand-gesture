@@ -1,6 +1,5 @@
 from collections import namedtuple
 from json import load
-from sys import exit
 
 try:
     from geometry_msgs.msg import PoseStamped
@@ -60,6 +59,7 @@ class AutomataManager:
                        for extract in
                        (lambda transition: transition.from_state, lambda transition: transition.to_state)}
         self.alphabet = {transition.with_what for transition in self.transitions} - self.special_chars
+        print(self.alphabet)
         self.navigator = navigator
 
     def _get_generic_input(self, specific_input):
@@ -89,6 +89,8 @@ class AutomataManager:
         """
 
     def consume_input(self, specific_input):
+        input_accepted = True
+
         # Get all transition from the current state
         transitions_from_current_state = [transition for transition in self.transitions if
                                           transition.from_state == self.current_state]
@@ -97,13 +99,15 @@ class AutomataManager:
         generic_input = self._get_generic_input(specific_input)
 
         # Get the transaction that match the given input
+        transition = None
         try:
             transition = next(filter(lambda tr: tr.with_what == generic_input, transitions_from_current_state))
         except StopIteration:
-            print(f"Transition not found from {self.current_state} with {specific_input}")
-            exit(1)
+            # print(f"Transition not found from {self.current_state} with {generic_input}")
+            # Input not accepted for the current state
+            return False
 
-        print(transition)
+        # print(transition)
 
         # Update current automata state
         self.current_state = transition.to_state
@@ -112,7 +116,12 @@ class AutomataManager:
         match transition.action:
             case {"type": "set_navigation_goal", "coordinate": raw_position}:
                 if raw_position == '$with':
-                    position = WAREHOUSE_MAP[specific_input](self.navigator)
+                    position_callable = WAREHOUSE_MAP.get(specific_input, None)
+                    if position_callable:
+                        position = position_callable(self.navigator)
+                    else:
+                        print(f"Position ({specific_input}) not in database")
+                        position = (0, 0)
                 else:
                     x, y = raw_position.split()
                     position = get_pose_stamped((x, y), self.navigator)
@@ -125,3 +134,5 @@ class AutomataManager:
                 print("No action required")
             case _:
                 print("Action not supported")
+
+        return input_accepted

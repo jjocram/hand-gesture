@@ -1,5 +1,4 @@
 import tensorflow as tf
-from sklearn.model_selection import train_test_split
 
 from train.utils import convert_to_tflite, train_model_with_time, \
     evaluate_model_with_time, get_callbacks, get_num_classes_from_labels_file, get_dataset, get_train_test_evaluate_datasets
@@ -28,7 +27,7 @@ def train(train_name: str, sample_number: [int | None], **kwargs):
     log_dir = f"keypoint_tensorboard_logs/{train_name}"
 
     num_classes = get_num_classes_from_labels_file(labels_path)
-    x_dataset, y_dataset = get_dataset(dataset_path, sample_number)
+    y_dataset, x_dataset = get_dataset(dataset_path, sample_number)
 
     # Train-test split
     x_train, y_train, x_test, y_test, x_evaluate, y_evaluate = get_train_test_evaluate_datasets(x_dataset,

@@ -1,10 +1,12 @@
 from datetime import datetime
 
+from tensorboard.data.experimental import ExperimentFromDev
 import tensorflow as tf
 from numpy import ndarray
 from pandas import concat, read_csv
 from sklearn.model_selection import train_test_split
 
+ExperimentFromDev()
 
 def get_num_classes_from_labels_file(file_path: str) -> int:
     with open(file_path, "r") as labels_file:

@@ -7,11 +7,11 @@ from train.utils import convert_to_tflite, train_model_with_time, \
 def get_model(num_classes: int):
     model = tf.keras.models.Sequential([
         tf.keras.layers.Input((21 * 2,)),
-        tf.keras.layers.Dropout(0.0),
+        tf.keras.layers.Dropout(0.2),
         tf.keras.layers.Dense(32, activation='relu'),
         tf.keras.layers.Dropout(0.0),
         tf.keras.layers.Dense(32, activation='relu'),
-        tf.keras.layers.Dropout(0.0),
+        tf.keras.layers.Dropout(0.2),
         tf.keras.layers.Dense(16, activation='relu'),
         tf.keras.layers.Dense(num_classes, activation='softmax')
     ])

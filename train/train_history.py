@@ -5,29 +5,29 @@ from train.utils import get_num_classes_from_labels_file, convert_to_tflite, tra
 
 
 def get_model(num_classes: int, time_steps: int, dimension: int, number_of_fingers: int):
-    # model = tf.keras.models.Sequential([
-    #     tf.keras.layers.InputLayer(input_shape=(time_steps * dimension * number_of_fingers,)),
-    #     tf.keras.layers.Dropout(0.2),
-    #     tf.keras.layers.Dense(24, activation='relu'),
-    #     tf.keras.layers.Dropout(0.5),
-    #     tf.keras.layers.Dense(10, activation='relu'),
-    #     tf.keras.layers.Dense(num_classes, activation='softmax')
-    # ])
     model = tf.keras.models.Sequential([
         tf.keras.layers.InputLayer(input_shape=(time_steps * dimension * number_of_fingers,)),
-        tf.keras.layers.Reshape((time_steps, dimension*number_of_fingers), input_shape=(time_steps * dimension * number_of_fingers,)),
         tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.LSTM(16, input_shape=[time_steps, dimension*number_of_fingers]),
+        tf.keras.layers.Dense(24, activation='relu'),
         tf.keras.layers.Dropout(0.5),
         tf.keras.layers.Dense(10, activation='relu'),
         tf.keras.layers.Dense(num_classes, activation='softmax')
     ])
+    # model = tf.keras.models.Sequential([
+    #     tf.keras.layers.InputLayer(input_shape=(time_steps * dimension * number_of_fingers,)),
+    #     tf.keras.layers.Reshape((time_steps, dimension*number_of_fingers), input_shape=(time_steps * dimension * number_of_fingers,)),
+    #     tf.keras.layers.Dropout(0.2),
+    #     tf.keras.layers.LSTM(16, input_shape=[time_steps, dimension*number_of_fingers]),
+    #     tf.keras.layers.Dropout(0.5),
+    #     tf.keras.layers.Dense(10, activation='relu'),
+    #     tf.keras.layers.Dense(num_classes, activation='softmax')
+    # ])
 
     return model
 
 
 def train(train_name: str, sample_number: int, **kwargs):
-    dataset_path = "model/point_history_classifier/point_history.csv"
+    dataset_path = "model/point_history_classifier/point_history_one_finger.csv"
     labels_path = "model/point_history_classifier/point_history_classifier_label.csv"
     model_save_path = "model/point_history_classifier/point_history_classifier.hdf5"
     tflite_save_path = "model/point_history_classifier/point_history_classifier.tflite"
@@ -36,7 +36,7 @@ def train(train_name: str, sample_number: int, **kwargs):
     num_classes = get_num_classes_from_labels_file(labels_path)
     time_steps = 16
     dimension = 2
-    number_of_fingers = 5
+    number_of_fingers = 1
 
     # Read the dataset
     y_dataset, x_dataset = get_dataset(dataset_path, sample_number)

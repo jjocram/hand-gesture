@@ -7,15 +7,35 @@ import numpy as np
 
 
 def get_char(static_gesture_id, dynamic_gesture_id):
+    """
+    Convert the hand gesture to a letter (A-Z)
+    :param static_gesture_id: the recognized static gesture id
+    :param dynamic_gesture_id: the recognized dynamic gesture id
+    :return: the letter ("a-z") based on the gesture recognized
+    """
     if dynamic_gesture_id == 0 or dynamic_gesture_id == 1:
         return chr(dynamic_gesture_id + ord('a'))
     else:
         return chr(static_gesture_id + ord('a'))
 
+
 def get_letter_gesture_id(static_gesture_id, dynamic_gesture_id):
+    """
+    Works with the provided labels files. Return with J and Z if the are recognized
+    :param static_gesture_id: the recognized static gesture id
+    :param dynamic_gesture_id: the recognized dynamic gesture id
+    :return: dynamic_gesture_id if J or Z else static_gesture_id
+    """
     return dynamic_gesture_id if dynamic_gesture_id == 0 or dynamic_gesture_id == 1 else static_gesture_id
 
+
 def _draw_text_white_on_black(img, text, position):
+    """
+    Draw the text on the image at position with a fancy white on black effect
+    :param img: the image where to write the text
+    :param text: the text to write
+    :param position: the top-left coordinate (x, y)
+    """
     cv.putText(img=img,
                text=text,
                org=position,
@@ -36,14 +56,24 @@ def _draw_text_white_on_black(img, text, position):
 
 
 def _draw_text(img, text, position, color):
-    cv.putText(img=img,
-               text=text,
-               org=position,
-               fontFace=cv.FONT_HERSHEY_SIMPLEX,
-               fontScale=0.6,
-               color=color,
-               thickness=1,
-               lineType=cv.LINE_AA)
+    """
+    Draw the text on top of the image at the position and with the color
+    :param img: the image where to write the text
+    :param text: the text to write
+    :param position: the top-left coordinate (x, y)
+    :param color: the RGB color (R, G, B)
+    """
+    x, y0 = position
+    for i, line in enumerate(text.split('\n')):
+        y = y0 + i * 20
+        cv.putText(img=img,
+                   text=line,
+                   org=(x, y),
+                   fontFace=cv.FONT_HERSHEY_SIMPLEX,
+                   fontScale=0.6,
+                   color=color,
+                   thickness=1,
+                   lineType=cv.LINE_AA)
 
 
 def calc_bounding_rect(image, landmarks):
@@ -94,9 +124,10 @@ def calc_landmark_list(image, landmarks):
 
 def pre_process_landmark(landmark_list):
     """
-
-    :param landmark_list:
-    :return:
+    Convert the landmarks in landmark_list flattening the coordinates and relating them to the landmark of the wrist
+    and performing the normalization
+    :param landmark_list: the list of landmarks to pre_process
+    :return: a list of landmarks relative to the wrist's landmark, flattened and normalized
     """
     temp_landmark_list = copy.deepcopy(landmark_list)
 
@@ -124,6 +155,12 @@ def pre_process_landmark(landmark_list):
 
 
 def pre_process_point_history(image, point_history):
+    """
+    Convert the point history coordinates to make them relative to the frame
+    :param image: the frame from OpenCV
+    :param point_history: the list of point history landmark from MediaPipe
+    :return: return a flatten list of coordinates related to the image of the point history landmarks
+    """
     image_width, image_height = image.shape[1], image.shape[0]
 
     temp_point_history = copy.deepcopy(point_history)
@@ -145,7 +182,7 @@ def pre_process_point_history(image, point_history):
     return temp_point_history
 
 
-def logging_csv(number, mode, landmark_list, point_history_list):
+def logging_csv(number: int, mode: int, landmark_list, point_history_list):
     """
     Save data on csv
     :param number: the identification number of the gesture (referees to label file)
@@ -229,7 +266,7 @@ def draw_landmarks(image, landmark_point):
 def draw_bounding_rect(image, brect):
     """
     Draws the rectangle around the hand
-    :param image: the image where to draw the
+    :param image: the image where to draw the rectangle
     :param brect: the bounding box of the rectangle to draw
     :return: the image with the bounding box drawn on top of it
     """
@@ -238,17 +275,26 @@ def draw_bounding_rect(image, brect):
     return image
 
 
-def draw_info_text(image, brect, handedness, hand_sign_text, finger_gesture_text):
-    cv.rectangle(image, (brect[0], brect[1]), (brect[2], brect[1] - 22), (0, 0, 0), -1)
+def draw_info_text(image, brect, handedness, static_hand_gesture_text, dynamic_hand_gesture_text):
+    """
+    Draw a black rectangle above the brect and write some info inside it
+    :param image: the image where to draw the info
+    :param brect: the bounding box rectangle of the hand
+    :param handedness: MediaPipe output for which hand is being used
+    :param static_hand_gesture_text: static hand gesture recognized
+    :param dynamic_hand_gesture_text: dynamic hand gesture recognized
+    :return: the image with info written on top of it
+    """
+    info_text = ""
+    cv.rectangle(image, (brect[0], brect[1]), (brect[2], brect[1] - 44), (0, 0, 0), -1)
 
-    info_text = handedness.classification[0].label[0:]
-    if hand_sign_text != "":
-        info_text = info_text + ':' + hand_sign_text
+    hand = handedness.classification[0].label[0:]
+    if static_hand_gesture_text != "":
+        info_text = 'Static Gesture (' + hand + '):' + static_hand_gesture_text
+        if dynamic_hand_gesture_text != "":
+            info_text += f"\nDynamic Gesture: {dynamic_hand_gesture_text}"
 
-    _draw_text(image, info_text, (brect[0] + 5, brect[1] - 4), (255, 255, 255))
-
-    if finger_gesture_text != "":
-        _draw_text_white_on_black(image, f"Finger gesture: {finger_gesture_text}", (10, 60))
+    _draw_text(image, info_text, (brect[0] + 5, brect[1] - 25), (255, 255, 255))
 
     return image
 
@@ -277,7 +323,7 @@ def draw_point_history(image, point_history):
 
 def draw_info(image, fps, mode, number):
     """
-    Draws some information on the image
+    Draws which mode is used on the image
     :param image: the image where to draw the infos
     :param fps: Frames Per Seconds
     :param mode: the current mode of the application
@@ -288,7 +334,7 @@ def draw_info(image, fps, mode, number):
     # Draws the FPS number white on a black background (this is way two text are written)
     _draw_text_white_on_black(image, f"FPS: {str(fps)}", (10, 30))
 
-    mode_string = ['Logging Key Point', 'Logging Point History']
+    mode_string = ['Logging Static Hand Gesture', 'Logging Dynamic Hand Gesture']
     if 1 <= mode <= 2:
         _draw_text(image, f"MODE: {mode_string[mode - 1]}", (10, 90), (255, 255, 255))
 

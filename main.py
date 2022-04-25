@@ -46,7 +46,7 @@ def learning_mode_get_mode_and_number():
         gesture_number = len(labels)
         new_gesture_label = input("Gesture label:")
         with open(labels_path, 'a') as labels_file:
-            labels_file.write(new_gesture_label)
+            labels_file.write(f"\n{new_gesture_label}")
     else:
         for i, label in enumerate(labels):
             print(i, "-", label)
@@ -121,7 +121,7 @@ def main():
     if args["interactive"]:
         mode, options = get_mode_and_number_with_interaction()
         match mode:
-            case Mode.EDIT_STATIC_GESTURE | Mode.EDIT_STATIC_GESTURE:
+            case Mode.EDIT_STATIC_GESTURE | Mode.EDIT_DYNAMIC_GESTURE:
                 saving_number = options
             case Mode.CREATE_NEW_MACRO:
                 macro_file_path = f"macros/{options}"
@@ -148,7 +148,7 @@ def main():
     cv_fps_calc = CvFpsCalc(buffer_len=10)
 
     print("Running the Hand Gesture Recognizer with this options:")
-    print(f"mode: {mode.name}\noptions: {options}")
+    print(f"mode: {mode.name} ({mode.value})\noptions: {options}")
 
     if mode is Mode.RUN_MACRO:
         MacroRunner(options).run()
@@ -170,7 +170,9 @@ def main():
                 break
 
             # Recognize the gesture
-            debug_image, static_hand_gesture_id, dynamic_hand_gesture_id = gesture_detector.recognize(image, number, mode.value,
+            debug_image, static_hand_gesture_id, dynamic_hand_gesture_id = gesture_detector.recognize(image,
+                                                                                                      number,
+                                                                                                      mode.value,
                                                                                                       fps)
             static_gesture_buffer.add_gesture(static_hand_gesture_id)
             dynamic_gesture_buffer.add_gesture(dynamic_hand_gesture_id)

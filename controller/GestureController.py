@@ -3,7 +3,6 @@ from time import sleep
 
 from GestureDetector import GestureBuffer
 from controller.AutomataManager import AutomataManager
-from utils import get_letter_gesture_id
 
 
 class GestureController:

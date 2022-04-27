@@ -14,14 +14,14 @@ Transaction = namedtuple("Transaction", ["from_state", "to_state", "with_what", 
 
 
 def get_pose_stamped(position, navigator):
-    """
-    goal_pose = PoseStamped()
-    goal_pose.header.frame_id = 'map'
-    goal_pose.header.stamp = navigator.get_clock().now().to_msg()
-    goal_pose.pose.position.x = position[0]
-    goal_pose.pose.position.y = position[1]
-    return goal_pose
-    """
+    if ROS_AVAILABLE:
+        goal_pose = PoseStamped()
+        goal_pose.header.frame_id = 'map'
+        goal_pose.header.stamp = navigator.get_clock().now().to_msg()
+        goal_pose.pose.position.x = position[0]
+        goal_pose.pose.position.y = position[1]
+        return goal_pose
+
     return position
 
 

@@ -121,6 +121,16 @@ class AutomataManager:
         else:
             print("Navigation to", position)
 
+    def _send_message(self, publisher_identifier, message_fields):
+        if ROS_AVAILABLE:
+            message_type = publisher_identifier[0]
+            message = globals()[message_type]()
+            for mf in message_fields:
+                setattr(message, mf, message_fields[mf])
+            self.message_publisher[publisher_identifier].publish(message)
+        else:
+            print(f"Publishing message: {publisher_identifier}, {message_fields}")
+
     def consume_input(self, specific_input):
         input_accepted = True
 
@@ -163,8 +173,11 @@ class AutomataManager:
             message = transition.action.get("message")
             message_type = message.get("type")
             message_topic = message.get("topic")
-            message_data = message.get("data").replace("$with", specific_input)
-            print(f"Sending message {message_type} with data={message_data} to {message_topic}")
+            message_fields = message.get("fields")
+            for mf in message_fields:
+                message_fields[mf] = message_fields[mf].replace("$with", specific_input)
+            self._send_message(publisher_identifier=(message_type, message_topic),
+                               message_fields=message_fields)
         else:
             print("Action not supported")
 

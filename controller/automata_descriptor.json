@@ -31,7 +31,9 @@
         "message": {
           "type": "std_msgs.msg.String",
           "topic": "/control_arm",
-          "data": "pick_up $with"
+          "fields": {
+            "data": "pick_up $with"
+          }
         }
       }
     },
@@ -44,7 +46,9 @@
         "message": {
           "type": "std_msgs.msg.String",
           "topic": "/control_arm",
-          "data": "drop_down"
+          "fields": {
+            "data": "drop_down"
+          }
         }
       }
     },

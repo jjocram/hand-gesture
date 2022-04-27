@@ -74,7 +74,7 @@ class AutomataManager:
                 pkg = ".".join(message_type.split(".")[:-1])
                 type_to_import = message_type.split(".")[-1]
                 if type_to_import not in globals():
-                    globals().update((type_to_import, getattr(import_module(pkg), type_to_import)))
+                    globals().update({type_to_import: getattr(import_module(pkg), type_to_import)})
 
                 self.message_publisher[(message_type, message_topic)] = self._node.create_publisher(globals()[type_to_import],
                                                                                                     message_topic,

@@ -29,7 +29,8 @@
       "action": {
         "type": "send_message",
         "message": {
-          "type": "/control_arm",
+          "type": "std_msgs.msg.String",
+          "topic": "/control_arm",
           "data": "pick_up $with"
         }
       }
@@ -41,7 +42,8 @@
       "action": {
         "type": "send_message",
         "message": {
-          "type": "/control_arm",
+          "type": "std_msgs.msg.String",
+          "topic": "/control_arm",
           "data": "drop_down"
         }
       }

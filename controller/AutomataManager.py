@@ -1,8 +1,10 @@
 from collections import namedtuple
 from json import load
+from importlib import import_module
 
 try:
     import rclpy
+    from rclpy.node import Node
     from geometry_msgs.msg import PoseStamped
     from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
     ROS_AVAILABLE = True
@@ -10,7 +12,7 @@ except ModuleNotFoundError:
     ROS_AVAILABLE = False
     print("ROS2 not correctly installed")
 
-Transaction = namedtuple("Transaction", ["from_state", "to_state", "with_what", "action"])
+Transition = namedtuple("Transaction", ["from_state", "to_state", "with_what", "action"])
 
 
 def get_pose_stamped(position, navigator):
@@ -38,9 +40,9 @@ WAREHOUSE_MAP = {
     "e": lambda nav: get_pose_stamped((-0.205, 7.403), nav),
     # Dropping zone 'pallet jack'
     "f": lambda nav: get_pose_stamped((-0.073, -8.497), nav),
-    # Dropping zone 'conveyer'
+    # Dropping zone 'conveyor'
     "g": lambda nav: get_pose_stamped((6.217, 2.153), nav),
-    # Dropping zone 'frieght bay'
+    # Dropping zone 'freight bay'
     "h": lambda nav: get_pose_stamped((-6.349, 9.147), nav)
 }
 
@@ -49,23 +51,35 @@ class AutomataManager:
     special_chars = {"A-Z"}
 
     def __init__(self, path: str):
-        if ROS_AVAILABLE:
-            rclpy.init()
         with open(path) as json_file:
             automata_dict = load(json_file)
 
         self.current_state = automata_dict.get("initial_state")
-        self.transitions = [Transaction(t.get("from"),
-                                        t.get("to"),
-                                        t.get("with"),
-                                        t.get("action")) for t in automata_dict.get("transitions")]
+        self.transitions = [Transition(t.get("from"),
+                                       t.get("to"),
+                                       t.get("with"),
+                                       t.get("action")) for t in automata_dict.get("transitions")]
         self.states = {extract(state)
                        for state in self.transitions
                        for extract in
                        (lambda transition: transition.from_state, lambda transition: transition.to_state)}
         self.alphabet = {transition.with_what for transition in self.transitions} - self.special_chars
-        print(self.alphabet)
+
+        self.message_publisher = {(t.action.get("message").get("type"), t.action.get("message").get("topic")): None for t in self.transitions if t.action and t.action.get("type") == "send_message"}
         if ROS_AVAILABLE:
+            rclpy.init()
+            self._node = Node("hand_gesture_recognizer")
+
+            for message_type, message_topic in self.message_publisher:
+                pkg = ".".join(message_type.split(".")[:-1])
+                type_to_import = message_type.split(".")[-1]
+                if type_to_import not in globals():
+                    globals().update((type_to_import, getattr(import_module(pkg), type_to_import)))
+
+                self.message_publisher[(message_type, message_topic)] = self._node.create_publisher(globals()[type_to_import],
+                                                                                                    message_topic,
+                                                                                                    10)
+
             self.navigator = BasicNavigator()
 
             self.initial_pose = PoseStamped()
@@ -125,8 +139,6 @@ class AutomataManager:
             # Input not accepted for the current state
             return False
 
-        # print(transition)
-
         # Update current automata state
         self.current_state = transition.to_state
 
@@ -150,8 +162,9 @@ class AutomataManager:
         elif transition.action.get("type") == "send_message":
             message = transition.action.get("message")
             message_type = message.get("type")
+            message_topic = message.get("topic")
             message_data = message.get("data").replace("$with", specific_input)
-            print(f"Sending message {message_type} with data={message_data}")
+            print(f"Sending message {message_type} with data={message_data} to {message_topic}")
         else:
             print("Action not supported")
 

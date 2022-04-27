@@ -18,6 +18,7 @@ class Mode(Enum):
     CREATE_NEW_MACRO = auto()
     RUN_MACRO = auto()
 
+
 def get_args():
     parser = ArgumentParser(prog="Hand gesture recognizer")
 
@@ -120,13 +121,12 @@ def main():
 
     if args["interactive"]:
         mode, options = get_mode_and_number_with_interaction()
-        match mode:
-            case Mode.EDIT_STATIC_GESTURE | Mode.EDIT_DYNAMIC_GESTURE:
-                saving_number = options
-            case Mode.CREATE_NEW_MACRO:
-                macro_file_path = f"macros/{options}"
-            case Mode.RUN_MACRO:
-                macro_file_path = options
+        if mode == Mode.EDIT_STATIC_GESTURE or mode == Mode.EDIT_DYNAMIC_GESTURE:
+            saving_number = options
+        elif mode == Mode.CREATE_NEW_MACRO:
+            macro_file_path = f"macros/{options}"
+        elif mode == Mode.RUN_MACRO:
+            macro_file_path = options
     else:
         mode, saving_number = Mode.OPERATIONAL, -1
 
@@ -177,11 +177,10 @@ def main():
             static_gesture_buffer.add_gesture(static_hand_gesture_id)
             dynamic_gesture_buffer.add_gesture(dynamic_hand_gesture_id)
 
-            match mode:
-                case Mode.OPERATIONAL:
-                    threading.Thread(target=control, args=(gesture_controller,)).start()
-                case Mode.CREATE_NEW_MACRO:
-                    threading.Thread(target=control, args=(macro_controller,)).start()
+            if mode == Mode.OPERATIONAL:
+                threading.Thread(target=control, args=(gesture_controller,)).start()
+            elif mode == Mode.CREATE_NEW_MACRO:
+                threading.Thread(target=control, args=(macro_controller,)).start()
 
             # Show image on the screen
             cv2.imshow('Hand Gesture Recognition', debug_image)

@@ -2,9 +2,13 @@ from collections import namedtuple
 from json import load
 
 try:
+    import rclpy
     from geometry_msgs.msg import PoseStamped
     from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
+
+    ROS_AVAILABLE = True
 except ModuleNotFoundError:
+    ROS_AVAILABLE = False
     print("ROS2 not correctly installed")
 
 Transaction = namedtuple("Transaction", ["from_state", "to_state", "with_what", "action"])
@@ -46,6 +50,8 @@ class AutomataManager:
     special_chars = {"A-Z"}
 
     def __init__(self, path: str, navigator):
+        if ROS_AVAILABLE:
+            rclpy.init()
         with open(path) as json_file:
             automata_dict = load(json_file)
 
@@ -69,24 +75,24 @@ class AutomataManager:
             return specific_input
 
     def _navigate_to(self, position):
-        print("Navigation to", position)
-        """
-        self.navigator.goToPose(position)
-        i = 0
-        while not self.navigator.isTaskComplete():
-            i += 1
-            feedback = self.navigator.getFeedback()
-            if feedback and i % 10 == 0:
-                print(f"Robot is going to position...")
+        if ROS_AVAILABLE:
+            self.navigator.goToPose(position)
+            i = 0
+            while not self.navigator.isTaskComplete():
+                i += 1
+                feedback = self.navigator.getFeedback()
+                if feedback and i % 10 == 0:
+                    print(f"Robot is going to position...")
 
-        result = self.navigator.getResult()
-        if result == TaskResult.SUCCEEDED:
-            print('Goal succeeded!')
-        elif result == TaskResult.CANCELED:
-            raise Exception('Goal was canceled!')
-        elif result == TaskResult.FAILED:
-            raise Exception('Goal failed!')
-        """
+            result = self.navigator.getResult()
+            if result == TaskResult.SUCCEEDED:
+                print('Goal succeeded!')
+            elif result == TaskResult.CANCELED:
+                raise Exception('Goal was canceled!')
+            elif result == TaskResult.FAILED:
+                raise Exception('Goal failed!')
+        else:
+            print("Navigation to", position)
 
     def consume_input(self, specific_input):
         input_accepted = True
@@ -99,7 +105,6 @@ class AutomataManager:
         generic_input = self._get_generic_input(specific_input)
 
         # Get the transaction that match the given input
-        transition = None
         try:
             transition = next(filter(lambda tr: tr.with_what == generic_input, transitions_from_current_state))
         except StopIteration:
@@ -112,27 +117,29 @@ class AutomataManager:
         # Update current automata state
         self.current_state = transition.to_state
 
-        # Execute command
-        match transition.action:
-            case {"type": "set_navigation_goal", "coordinate": raw_position}:
-                if raw_position == '$with':
-                    position_callable = WAREHOUSE_MAP.get(specific_input, None)
-                    if position_callable:
-                        position = position_callable(self.navigator)
-                    else:
-                        print(f"Position ({specific_input}) not in database")
-                        position = (0, 0)
+        # Execute command TODO: from python3.10 use a match-case statement
+        if transition.action is None:
+            print("No action required")
+        elif transition.action.get("type") == "set_navigation_goal":
+            raw_position = transition.action.get("coordinate")
+            if raw_position == '$with':
+                position_callable = WAREHOUSE_MAP.get(specific_input, None)
+                if position_callable:
+                    position = position_callable(self.navigator)
                 else:
-                    x, y = raw_position.split()
-                    position = get_pose_stamped((x, y), self.navigator)
-                self._navigate_to(position)
-            case {"type": "send_message", "message": message}:
-                message_type = message.get("type")
-                message_data = message.get("data").replace("$with", specific_input)
-                print(f"Sending message {message_type} with data={message_data}")
-            case None:
-                print("No action required")
-            case _:
-                print("Action not supported")
+                    print(f"Position ({specific_input}) not in database")
+                    position = (0, 0)
+            else:
+                x, y = raw_position.split()
+                position = get_pose_stamped((x, y), self.navigator)
+
+            self._navigate_to(position)
+        elif transition.action.get("type") == "send_message":
+            message = transition.action.get("message")
+            message_type = message.get("type")
+            message_data = message.get("data").replace("$with", specific_input)
+            print(f"Sending message {message_type} with data={message_data}")
+        else:
+            print("Action not supported")
 
         return input_accepted

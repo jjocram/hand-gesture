@@ -5,7 +5,6 @@ try:
     import rclpy
     from geometry_msgs.msg import PoseStamped
     from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
-
     ROS_AVAILABLE = True
 except ModuleNotFoundError:
     ROS_AVAILABLE = False
@@ -49,7 +48,7 @@ WAREHOUSE_MAP = {
 class AutomataManager:
     special_chars = {"A-Z"}
 
-    def __init__(self, path: str, navigator):
+    def __init__(self, path: str):
         if ROS_AVAILABLE:
             rclpy.init()
         with open(path) as json_file:
@@ -66,7 +65,21 @@ class AutomataManager:
                        (lambda transition: transition.from_state, lambda transition: transition.to_state)}
         self.alphabet = {transition.with_what for transition in self.transitions} - self.special_chars
         print(self.alphabet)
-        self.navigator = navigator
+        if ROS_AVAILABLE:
+            self.navigator = BasicNavigator()
+
+            self.initial_pose = PoseStamped()
+            self.initial_pose.header.frame_id = 'map'
+            self.initial_pose.header.stamp = self.navigator.get_clock().now().to_msg()
+            self.initial_pose.pose.position.x = 0.0
+            self.initial_pose.pose.position.y = 0.0
+            self.initial_pose.pose.orientation.z = 0.70
+            self.initial_pose.pose.orientation.w = 0.71
+            self.navigator.setInitialPose(self.initial_pose)
+
+            self.navigator.waitUntilNav2Active()
+        else:
+            self.navigator = None
 
     def _get_generic_input(self, specific_input):
         if specific_input not in self.alphabet:

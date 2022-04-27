@@ -19,9 +19,7 @@ class GestureController:
 
         self.sending_message = threading.Lock()
 
-        self.navigator = None
-
-        self.automata = AutomataManager("controller/automata_descriptor.json", self.navigator)
+        self.automata = AutomataManager("controller/automata_descriptor.json")
 
     def gesture_control(self, static_gesture_buffer: GestureBuffer, dynamic_gesture_buffer: GestureBuffer):
         with self.sending_message:
@@ -49,57 +47,3 @@ class GestureController:
                 input_accepted = self.automata.consume_input(input_gesture)
                 if input_accepted:
                     sleep(4)
-
-            """
-            to_sleep = False
-            if self.state == 'q0':  # Robot without package
-                if self.last_dynamic == 3:  # Go to
-                    print("Going to (without parcel):", end=" ")
-
-                    self.state = 'q2'
-                    to_sleep = True
-                elif self.last_dynamic == 4:  # Pick up
-                    print("Picking up:", end=" ")
-
-                    self.state = 'q1'
-                    to_sleep = True
-            elif self.state == 'q1':  # Robot waiting for parcel id
-                letter = get_char(self.last_static, self.last_dynamic)
-                print(letter)
-                print(f"Sending command: picking up parcel: {letter}")
-                print("-------------------------------------")
-
-                self.state = 'q3'
-                to_sleep = True
-            elif self.state == 'q2':  # Robot waiting for "direction" without parcel
-                letter = get_char(self.last_static, self.last_dynamic)
-                print(letter)
-                print(f"Sending command: going to {letter}")
-                print("---------------------------")
-
-                self.state = 'q0'
-                to_sleep = True
-            elif self.state == 'q3':  # Robot with package
-                if self.last_dynamic == 5:  # Drop down
-                    print("Sending command: drop down parcel")
-                    print("---------------------------------")
-
-                    self.state = 'q0'
-                    to_sleep = True
-                elif self.last_dynamic == 3:  # Go to
-                    print("Going to (with parcel):", end=" ")
-
-                    self.state = 'q4'
-                    to_sleep = True
-            elif self.state == 'q4':  # Robot waiting for "direction" with parcel
-                letter = get_char(self.last_static, self.last_dynamic)
-                print(letter)
-                print(f"Sending command: going to {letter}")
-                print("---------------------------")
-
-                self.state = 'q3'
-                to_sleep = True
-
-            if to_sleep:
-                sleep(4)
-            """

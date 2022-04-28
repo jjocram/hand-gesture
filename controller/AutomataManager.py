@@ -131,7 +131,7 @@ class AutomataManager:
         else:
             print(f"Publishing message: {publisher_identifier}, {message_fields}")
 
-    def consume_input(self, specific_input):
+    def consume_input(self, specific_input) -> bool:
         input_accepted = True
 
         # Get all transition from the current state

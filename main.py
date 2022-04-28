@@ -165,7 +165,7 @@ def main():
     print(f"mode: {mode.name} ({mode.value})\noptions: {options}")
 
     if mode is Mode.RUN_MACRO:
-        MacroRunner(options).run()
+        MacroRunner(options, automata_descriptor_path).run()
     else:
         while True:
             # Get fps

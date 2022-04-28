@@ -12,7 +12,8 @@ except ModuleNotFoundError:
     ROS_AVAILABLE = False
     print("ROS2 not correctly installed")
 
-Transition = namedtuple("Transaction", ["from_state", "to_state", "with_what", "action"])
+Transition = namedtuple(
+    "Transaction", ["from_state", "to_state", "with_what", "action"])
 
 
 WAREHOUSE_MAP = {
@@ -34,11 +35,14 @@ WAREHOUSE_MAP = {
     "h": lambda am: am._get_pose_stamped((-6.349, 9.147), am.navigator)
 }
 
+_initialized = False
+
 
 class AutomataManager:
     special_chars = {"A-Z"}
 
     def __init__(self, path: str, execute_actions: bool):
+        global _initialized
         self.execute_actions = execute_actions and ROS_AVAILABLE
         with open(path) as json_file:
             automata_dict = load(json_file)
@@ -52,22 +56,28 @@ class AutomataManager:
                        for state in self.transitions
                        for extract in
                        (lambda transition: transition.from_state, lambda transition: transition.to_state)}
-        self.alphabet = {transition.with_what for transition in self.transitions} - self.special_chars
+        self.alphabet = {
+            transition.with_what for transition in self.transitions} - self.special_chars
 
-        self.message_publisher = {(t.action.get("message").get("type"), t.action.get("message").get("topic")): None for t in self.transitions if t.action and t.action.get("type") == "send_message"}
+        self.message_publisher = {(t.action.get("message").get("type"), t.action.get("message").get(
+            "topic")): None for t in self.transitions if t.action and t.action.get("type") == "send_message"}
+
         if self.execute_actions:
-            rclpy.init()
+            if not _initialized:
+                rclpy.init()
             self._node = Node("hand_gesture_recognizer")
 
             for message_type, message_topic in self.message_publisher:
                 pkg = ".".join(message_type.split(".")[:-1])
                 type_to_import = message_type.split(".")[-1]
                 if type_to_import not in globals():
-                    globals().update({type_to_import: getattr(import_module(pkg), type_to_import)})
+                    globals().update({type_to_import: getattr(
+                        import_module(pkg), type_to_import)})
 
                 self.message_publisher[(message_type, message_topic)] = self._node.create_publisher(globals()[type_to_import],
                                                                                                     message_topic,
                                                                                                     10)
+            print(self.message_publisher)
 
             self.navigator = BasicNavigator()
 
@@ -78,11 +88,13 @@ class AutomataManager:
             self.initial_pose.pose.position.y = 0.0
             self.initial_pose.pose.orientation.z = 0.70
             self.initial_pose.pose.orientation.w = 0.71
-            self.navigator.setInitialPose(self.initial_pose)
+            if not _initialized:
+                self.navigator.setInitialPose(self.initial_pose)
 
-            self.navigator.waitUntilNav2Active()
+                self.navigator.waitUntilNav2Active()
         else:
             self.navigator = None
+        _initialized = True
 
     def _get_pose_stamped(self, position, navigator):
         if self.execute_actions:
@@ -122,14 +134,17 @@ class AutomataManager:
             print("Navigation to", position)
 
     def _send_message(self, publisher_identifier, message_fields):
+        print(publisher_identifier)
+        print(self.message_publisher)
         if self.execute_actions:
-            message_type = publisher_identifier[0]
+            message_type = publisher_identifier[0].split(".")[-1]
             message = globals()[message_type]()
             for mf in message_fields:
                 setattr(message, mf, message_fields[mf])
             self.message_publisher[publisher_identifier].publish(message)
         else:
-            print(f"Publishing message: {publisher_identifier}, {message_fields}")
+            print(
+                f"Publishing message: {publisher_identifier}, {message_fields}")
 
     def consume_input(self, specific_input) -> bool:
         input_accepted = True
@@ -143,7 +158,8 @@ class AutomataManager:
 
         # Get the transaction that match the given input
         try:
-            transition = next(filter(lambda tr: tr.with_what == generic_input, transitions_from_current_state))
+            transition = next(filter(lambda tr: tr.with_what
+                              == generic_input, transitions_from_current_state))
         except StopIteration:
             # print(f"Transition not found from {self.current_state} with {generic_input}")
             # Input not accepted for the current state
@@ -175,7 +191,8 @@ class AutomataManager:
             message_topic = message.get("topic")
             message_fields = message.get("fields")
             for mf in message_fields:
-                message_fields[mf] = message_fields[mf].replace("$with", specific_input)
+                message_fields[mf] = message_fields[mf].replace(
+                    "$with", specific_input)
             self._send_message(publisher_identifier=(message_type, message_topic),
                                message_fields=message_fields)
         else:

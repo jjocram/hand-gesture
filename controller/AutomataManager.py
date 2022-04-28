@@ -15,42 +15,31 @@ except ModuleNotFoundError:
 Transition = namedtuple("Transaction", ["from_state", "to_state", "with_what", "action"])
 
 
-def get_pose_stamped(position, navigator):
-    if ROS_AVAILABLE:
-        goal_pose = PoseStamped()
-        goal_pose.header.frame_id = 'map'
-        goal_pose.header.stamp = navigator.get_clock().now().to_msg()
-        goal_pose.pose.position.x = position[0]
-        goal_pose.pose.position.y = position[1]
-        return goal_pose
-
-    return position
-
-
 WAREHOUSE_MAP = {
     # Shelf A
-    'a': lambda nav: get_pose_stamped((-3.829, -7.604), nav),
+    'a': lambda am: am._get_pose_stamped((-3.829, -7.604), am.navigator),
     # Shelf B
-    'b': lambda nav: get_pose_stamped((-3.791, -3.287), nav),
+    'b': lambda am: am._get_pose_stamped((-3.791, -3.287), am.navigator),
     # Shelf C
-    'c': lambda nav: get_pose_stamped((-3.791, 1.254), nav),
+    'c': lambda am: am._get_pose_stamped((-3.791, 1.254), am.navigator),
     # Shelf D
-    'd': lambda nav: get_pose_stamped((-3.24, 5.861), nav),
+    'd': lambda am: am._get_pose_stamped((-3.24, 5.861), am.navigator),
     # Dropping zone 'recycling'
-    "e": lambda nav: get_pose_stamped((-0.205, 7.403), nav),
+    "e": lambda am: am._get_pose_stamped((-0.205, 7.403), am.navigator),
     # Dropping zone 'pallet jack'
-    "f": lambda nav: get_pose_stamped((-0.073, -8.497), nav),
+    "f": lambda am: am._get_pose_stamped((-0.073, -8.497), am.navigator),
     # Dropping zone 'conveyor'
-    "g": lambda nav: get_pose_stamped((6.217, 2.153), nav),
+    "g": lambda am: am._get_pose_stamped((6.217, 2.153), am.navigator),
     # Dropping zone 'freight bay'
-    "h": lambda nav: get_pose_stamped((-6.349, 9.147), nav)
+    "h": lambda am: am._get_pose_stamped((-6.349, 9.147), am.navigator)
 }
 
 
 class AutomataManager:
     special_chars = {"A-Z"}
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, execute_actions: bool):
+        self.execute_actions = execute_actions and ROS_AVAILABLE
         with open(path) as json_file:
             automata_dict = load(json_file)
 
@@ -66,7 +55,7 @@ class AutomataManager:
         self.alphabet = {transition.with_what for transition in self.transitions} - self.special_chars
 
         self.message_publisher = {(t.action.get("message").get("type"), t.action.get("message").get("topic")): None for t in self.transitions if t.action and t.action.get("type") == "send_message"}
-        if ROS_AVAILABLE:
+        if self.execute_actions:
             rclpy.init()
             self._node = Node("hand_gesture_recognizer")
 
@@ -95,6 +84,17 @@ class AutomataManager:
         else:
             self.navigator = None
 
+    def _get_pose_stamped(self, position, navigator):
+        if self.execute_actions:
+            goal_pose = PoseStamped()
+            goal_pose.header.frame_id = 'map'
+            goal_pose.header.stamp = navigator.get_clock().now().to_msg()
+            goal_pose.pose.position.x = position[0]
+            goal_pose.pose.position.y = position[1]
+            return goal_pose
+
+        return position
+
     def _get_generic_input(self, specific_input):
         if specific_input not in self.alphabet:
             return "A-Z"
@@ -102,7 +102,7 @@ class AutomataManager:
             return specific_input
 
     def _navigate_to(self, position):
-        if ROS_AVAILABLE:
+        if self.execute_actions:
             self.navigator.goToPose(position)
             i = 0
             while not self.navigator.isTaskComplete():
@@ -122,7 +122,7 @@ class AutomataManager:
             print("Navigation to", position)
 
     def _send_message(self, publisher_identifier, message_fields):
-        if ROS_AVAILABLE:
+        if self.execute_actions:
             message_type = publisher_identifier[0]
             message = globals()[message_type]()
             for mf in message_fields:
@@ -160,13 +160,13 @@ class AutomataManager:
             if raw_position == '$with':
                 position_callable = WAREHOUSE_MAP.get(specific_input, None)
                 if position_callable:
-                    position = position_callable(self.navigator)
+                    position = position_callable(self)
                 else:
                     print(f"Position ({specific_input}) not in database")
                     position = (0, 0)
             else:
                 x, y = raw_position.split()
-                position = get_pose_stamped((x, y), self.navigator)
+                position = self._get_pose_stamped((x, y), self.navigator)
 
             self._navigate_to(position)
         elif transition.action.get("type") == "send_message":

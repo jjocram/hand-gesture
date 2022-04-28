@@ -4,6 +4,7 @@ from enum import Enum, auto
 
 import cv2
 
+from controller.BaseController import BaseController
 from controller.GestureController import GestureController
 from GestureDetector import GestureDetector, GestureBuffer
 from controller.MacroController import MacroController
@@ -99,14 +100,20 @@ static_gesture_buffer = GestureBuffer(buffer_len=5)
 dynamic_gesture_buffer = GestureBuffer(buffer_len=5)
 
 
-def control(controller):
+def control(controller: BaseController):
     global static_gesture_buffer
     global dynamic_gesture_buffer
-    controller.gesture_control(static_gesture_buffer, dynamic_gesture_buffer)
+    controller.consume_gesture(static_gesture_buffer, dynamic_gesture_buffer)
 
 
 def main():
     args = get_args()
+
+    model_keypoint_classifier_path = "model/keypoint_classifier/keypoint_classifier.tflite"
+    labels_keypoint_classifier_path = "model/keypoint_classifier/keypoint_classifier_label.csv"
+    model_point_history_classifier_path = "model/point_history_classifier/point_history_classifier.tflite"
+    labels_point_history_classifier_path = "model/point_history_classifier/point_history_classifier_label.csv"
+    automata_descriptor_path = "controller/automata_descriptor.json"
 
     cap_device = 0
     cap_width = 960
@@ -136,14 +143,21 @@ def main():
 
     gesture_detector = GestureDetector(min_detection_confidence,
                                        min_tracking_confidence,
-                                       model_keypoint_classifier_path="model/keypoint_classifier/keypoint_classifier.tflite",
-                                       labels_keypoint_classifier_path="model/keypoint_classifier/keypoint_classifier_label.csv",
-                                       model_point_history_classifier_path="model/point_history_classifier/point_history_classifier.tflite",
-                                       labels_point_history_classifier_path="model/point_history_classifier/point_history_classifier_label.csv",
+                                       model_keypoint_classifier_path,
+                                       labels_keypoint_classifier_path,
+                                       model_point_history_classifier_path,
+                                       labels_point_history_classifier_path,
                                        history_length=16)
 
-    gesture_controller = GestureController()
-    macro_controller = MacroController(macro_file_path)
+    gesture_controller = GestureController(labels_keypoint_classifier_path,
+                                           labels_point_history_classifier_path,
+                                           automata_descriptor_path,
+                                           execute_actions=True)
+    macro_controller = MacroController(macro_file_path,
+                                       labels_keypoint_classifier_path,
+                                       labels_point_history_classifier_path,
+                                       automata_descriptor_path,
+                                       execute_actions=False)
 
     cv_fps_calc = CvFpsCalc(buffer_len=10)
 

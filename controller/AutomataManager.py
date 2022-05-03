@@ -16,23 +16,42 @@ Transition = namedtuple(
     "Transaction", ["from_state", "to_state", "with_what", "action"])
 
 
+# WAREHOUSE_MAP = {
+#     # Shelf A
+#     'a': lambda am: am._get_pose_stamped((-3.829, -7.604), am.navigator),
+#     # Shelf B
+#     'b': lambda am: am._get_pose_stamped((-3.791, -3.287), am.navigator),
+#     # Shelf C
+#     'c': lambda am: am._get_pose_stamped((-3.791, 1.254), am.navigator),
+#     # Shelf D
+#     'd': lambda am: am._get_pose_stamped((-3.24, 5.861), am.navigator),
+#     # Dropping zone 'recycling'
+#     "e": lambda am: am._get_pose_stamped((-0.205, 7.403), am.navigator),
+#     # Dropping zone 'pallet jack'
+#     "f": lambda am: am._get_pose_stamped((-0.073, -8.497), am.navigator),
+#     # Dropping zone 'conveyor'
+#     "g": lambda am: am._get_pose_stamped((6.217, 2.153), am.navigator),
+#     # Dropping zone 'freight bay'
+#     "h": lambda am: am._get_pose_stamped((-6.349, 9.147), am.navigator)
+# }
+
 WAREHOUSE_MAP = {
     # Shelf A
-    'a': lambda am: am._get_pose_stamped((-3.829, -7.604), am.navigator),
+    'a': (-3.829, -7.604),
     # Shelf B
-    'b': lambda am: am._get_pose_stamped((-3.791, -3.287), am.navigator),
+    'b': (-3.791, -3.287),
     # Shelf C
-    'c': lambda am: am._get_pose_stamped((-3.791, 1.254), am.navigator),
+    'c': (-3.791, 1.254),
     # Shelf D
-    'd': lambda am: am._get_pose_stamped((-3.24, 5.861), am.navigator),
+    'd': (-3.24, 5.861),
     # Dropping zone 'recycling'
-    "e": lambda am: am._get_pose_stamped((-0.205, 7.403), am.navigator),
+    "e": (-0.205, 7.403),
     # Dropping zone 'pallet jack'
-    "f": lambda am: am._get_pose_stamped((-0.073, -8.497), am.navigator),
+    "f": (-0.073, -8.497),
     # Dropping zone 'conveyor'
-    "g": lambda am: am._get_pose_stamped((6.217, 2.153), am.navigator),
+    "g": (6.217, 2.153),
     # Dropping zone 'freight bay'
-    "h": lambda am: am._get_pose_stamped((-6.349, 9.147), am.navigator)
+    "h": (-6.349, 9.147)
 }
 
 _initialized = False
@@ -96,11 +115,11 @@ class AutomataManager:
             self.navigator = None
         _initialized = True
 
-    def _get_pose_stamped(self, position, navigator):
+    def _get_pose_stamped(self, position):
         if self.execute_actions:
             goal_pose = PoseStamped()
             goal_pose.header.frame_id = 'map'
-            goal_pose.header.stamp = navigator.get_clock().now().to_msg()
+            goal_pose.header.stamp = self.navigator.get_clock().now().to_msg()
             goal_pose.pose.position.x = position[0]
             goal_pose.pose.position.y = position[1]
             return goal_pose
@@ -174,17 +193,17 @@ class AutomataManager:
         elif transition.action.get("type") == "set_navigation_goal":
             raw_position = transition.action.get("coordinate")
             if raw_position == '$with':
-                position_callable = WAREHOUSE_MAP.get(specific_input, None)
-                if position_callable:
-                    position = position_callable(self)
+                if specific_input in WAREHOUSE_MAP.keys():
+                    position = self._get_pose_stamped(WAREHOUSE_MAP.get(specific_input))
                 else:
                     print(f"Position ({specific_input}) not in database")
-                    position = (0, 0)
+                    position = None
             else:
                 x, y = raw_position.split()
-                position = self._get_pose_stamped((x, y), self.navigator)
+                position = self._get_pose_stamped((x, y))
 
-            self._navigate_to(position)
+            if position:
+                self._navigate_to(position)
         elif transition.action.get("type") == "send_message":
             message = transition.action.get("message")
             message_type = message.get("type")

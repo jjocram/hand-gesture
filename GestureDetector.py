@@ -98,7 +98,6 @@ class GestureDetector:
                 for i in [4, 8, 12, 16, 20]:
                     self.point_history.append(landmark_list[i])
 
-
                 # Finger gesture classification
                 point_history_len = len(pre_processed_point_history_list)
                 if point_history_len == (self.history_length * 2 * 5):

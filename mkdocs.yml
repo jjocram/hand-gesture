@@ -1,0 +1,62 @@
+site_name: Hand gesture recognition integrated with ROS
+site_author: Marco Ferrati
+site_description: >
+  "Documentation for the hand gesture recognizer integrated with ROS for the Master's thesis Dynamic Human Robot Interaction Framework Using Deep Learning and Robot Operating System (ROS): a practical approach"
+repo_name: jjocram/hand-gesture
+repo_url: https://github.com/jjocram/hand-gesture
+copyright: >
+  "Documentation for the project developed for Marco Ferrati's thesis Dynamic Human Robot Interaction Framework Using Deep Learning and Robot Operating System (ROS): a practical approach"
+theme:
+  name: material
+  language: en
+  font:
+    text: Open Sans
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.expand
+    - navigation.top
+    - navigation.instant
+    - search.suggest
+    - content.code.annotate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: blue
+      toggle:
+        icon: material/lightbulb
+        name: Change to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: blue
+      toggle:
+        icon: material/lightbulb-outline
+        name: Change to light mode
+edit_uri: ""
+plugins:
+  - search
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - abbr
+  - admonition
+  - footnotes
+  - attr_list
+  - lightgallery:
+      show_description_in_lightgallery: true
+      show_description_as_inline_caption: true
+      custom_inline_caption_css_class: "text-center text-italic"
+  - pymdownx.details
+  - pymdownx.snippets
+nav:
+  - Home: "index.md"
+  - Setup: "setup.md"
+  - Run the simulation: "run.md"
+  - Development:
+    - "Main": "development/development_intro.md"
+    - "Hand gesture recognizer": "development/hand_gesture_recognizer.md"

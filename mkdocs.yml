@@ -60,3 +60,11 @@ nav:
   - Development:
     - "Main": "development/development_intro.md"
     - "Hand gesture recognizer": "development/hand_gesture_recognizer.md"
+    - "Controllers":
+      - "BaseController": "development/base_controller.md"
+      - "GestureController": "development/gesture_controller.md"
+      - "MacroController": "development/macro_controller.md"
+      - "MacroRunner": "development/macro_runner.md"
+    - "Automaton":
+      - "Configuration": "development/automata_manager_config.md"
+      - "AutomataManager": "development/automata_manager.md"

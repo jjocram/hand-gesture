@@ -1,8 +1,6 @@
-import sys
-
-from controller.AutomataManager import AutomataManager
-
-
+# Macro runner
+This class does not inherit from the `BaseController` because it doesn't use buffers to retrieve the gestures. Instead, it reads a macro file and give the gestures written in it directly to the automaton.
+```py
 class MacroRunner:
     def __init__(self, macro_file_path: str, automata_descriptor_path: str):
         self.state = 'q0'
@@ -18,3 +16,5 @@ class MacroRunner:
                 if not input_accepted:
                     print(f"Macro file {self.macro_file_path} contains command {action} NOT ACCEPTED at line {line}")
                     sys.exit(1)
+
+```

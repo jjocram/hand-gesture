@@ -23,7 +23,7 @@ class BaseController:
 
         self.automata = AutomataManager(automata_descriptor_path, execute_actions)
 
-    def _get_gesture(self, static_gesture_buffer: GestureBuffer, dynamic_gesture_buffer: GestureBuffer):
+    def _get_gesture(self, static_gesture_buffer: GestureBuffer, dynamic_gesture_buffer: GestureBuffer) -> str:
         static_gesture = None
         static_gesture_id = static_gesture_buffer.get_gesture()
         if static_gesture_id is not None and static_gesture_id != -1:

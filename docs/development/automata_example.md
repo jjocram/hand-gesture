@@ -1,0 +1,75 @@
+# Example of configuration file
+```json
+{
+  "initial_state": "q0",
+  "transitions": [
+    {
+      "from": "q0",
+      "to": "q1",
+      "with": "pick_up",
+      "action": null
+    },
+    {
+      "from": "q0",
+      "to": "q2",
+      "with": "go_to",
+      "action": null
+    },
+    {
+      "from": "q2",
+      "to": "q0",
+      "with": "A-Z",
+      "action": {
+        "type": "set_navigation_goal",
+        "coordinate": "$with"
+      }
+    },
+    {
+      "from": "q1",
+      "to": "q3",
+      "with": "A-Z",
+      "action": {
+        "type": "send_message",
+        "message": {
+          "type": "std_msgs.msg.String",
+          "topic": "/control_arm",
+          "fields": {
+            "data": "pick_up $with"
+          }
+        }
+      }
+    },
+    {
+      "from": "q3",
+      "to": "q0",
+      "with": "drop_down",
+      "action": {
+        "type": "send_message",
+        "message": {
+          "type": "std_msgs.msg.String",
+          "topic": "/control_arm",
+          "fields": {
+            "data": "drop_down"
+          }
+        }
+      }
+    },
+    {
+      "from": "q3",
+      "to": "q4",
+      "with": "go_to",
+      "action": null
+    },
+    {
+      "from": "q4",
+      "to": "q3",
+      "with": "A-Z",
+      "action": {
+        "type": "set_navigation_goal",
+        "coordinate": "$with"
+      }
+    }
+  ]
+}
+```
+![!Automaton generated with the above configuration files](../../assets/automaton_example.png){: loading=lazy}

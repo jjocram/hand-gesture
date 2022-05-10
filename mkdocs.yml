@@ -68,3 +68,7 @@ nav:
     - "Automaton":
       - "Configuration": "development/automata_manager_config.md"
       - "AutomataManager": "development/automata_manager.md"
+      - "Example": "development/automata_example.md"
+    - "Train":
+      - "Main": "train/train_main.md"
+      - "Train static and dynamic hand gesture": "train/train_networks.md"

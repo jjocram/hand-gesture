@@ -57,6 +57,7 @@ nav:
   - Home: "index.md"
   - Setup: "setup.md"
   - Run the simulation: "run.md"
+  - Train: "train.md"
   - Development:
     - "Main": "development/development_intro.md"
     - "Hand gesture recognizer": "development/hand_gesture_recognizer.md"

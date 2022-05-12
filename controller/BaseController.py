@@ -44,7 +44,7 @@ class BaseController:
 
         return dynamic_gesture if dynamic_gesture else static_gesture
 
-    def _consume_gesture(self, static_gesture_buffer: GestureBuffer, dynamic_gesture_buffer: GestureBuffer, input_accepted_callback: callable):
+    def _consume_gesture(self, static_gesture_buffer: GestureBuffer, dynamic_gesture_buffer: GestureBuffer, input_accepted_callback):
         with self.sending_message:
             input_gesture = self._get_gesture(static_gesture_buffer, dynamic_gesture_buffer)
             if input_gesture and input_gesture != "static":

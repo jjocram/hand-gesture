@@ -33,7 +33,7 @@ def _get_gesture(self, static_gesture_buffer: GestureBuffer, dynamic_gesture_buf
 ## Consume gesture
 The method `_consume_gesture` manage the access to the automaton using a `Lock`. In this way only one gesture at a time can be given as input to the automaton. Moreover, it ignore the `static` dynamic gesture. Finally, if the gesture is accepted by the automaton it calls a callback and wait for `4` seconds before releasing the `Lock`.
 ```py
-def _consume_gesture(self, static_gesture_buffer: GestureBuffer, dynamic_gesture_buffer: GestureBuffer, input_accepted_callback: callable):
+def _consume_gesture(self, static_gesture_buffer: GestureBuffer, dynamic_gesture_buffer: GestureBuffer, input_accepted_callback):
     with self.sending_message:
         input_gesture = self._get_gesture(static_gesture_buffer, dynamic_gesture_buffer)
         if input_gesture and input_gesture != "static":

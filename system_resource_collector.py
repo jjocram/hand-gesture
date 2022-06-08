@@ -26,6 +26,8 @@ number_of_cpu = psutil.cpu_count()
 
 with psutil.Popen(cmd) as p:
     print("Starting logging...")
+    p.cpu_percent()
+    p.memory_percent()
     while p.status() == psutil.STATUS_RUNNING:
         times.append(t)
         t += sleep_time

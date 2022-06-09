@@ -1,5 +1,4 @@
 import psutil
-from sys import argv
 from time import sleep
 
 import seaborn as sns

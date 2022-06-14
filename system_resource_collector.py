@@ -1,5 +1,6 @@
 import psutil
 from time import sleep
+from sys import argv
 
 import seaborn as sns
 from matplotlib import pyplot as plt
@@ -13,7 +14,8 @@ def plot_and_save(x, y, path, title, ylabel):
     graph.get_figure().savefig(path)
     plt.close(graph.get_figure())
 
-cmd = ["python", "-m", "train", "static_gesture", "--train-name", "test"]
+# cmd = ["python", "-m", "train", "static_gesture", "--train-name", "test"]
+cmd = argv[1:]
 sleep_time = 5.0
 graph_path = "graphs"
 
